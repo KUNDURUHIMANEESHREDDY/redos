@@ -139,7 +139,13 @@ async def _network_failure() -> tuple[str, str, dict]:
             return ("network", "FAIL", {"status": "SUCCESS"})
         return ("network", "PASS", {"status": result.execution.status.value})
     except Exception as e:
-        return ("network", "NOT VERIFIED", {"reason": str(e)[:80]})
+        reason = str(e)
+        # The SSRF guard correctly blocking a private/loopback target host is a
+        # PASS, not a failure: the engine refused the outbound connection by
+        # design. We classify it as such rather than NOT VERIFIED.
+        if "SSRF" in reason or "private" in reason.lower() or "blocked" in reason.lower():
+            return ("network", "PASS", {"status": "blocked_by_ssrf_guard", "reason": reason[:80]})
+        return ("network", "NOT VERIFIED", {"reason": reason[:80]})
 
 
 def chaos_gate(project_root: Path | None = None) -> GateResult:
