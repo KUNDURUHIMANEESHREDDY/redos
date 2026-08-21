@@ -1,0 +1,558 @@
+# RedOS CI/CD Integration
+
+## Overview
+
+CI/CD pipeline integrations for RedOS Security Platform. Gates and security scanning triggered
+on pull requests, commits, and deployment pipelines. All results flow into the RedOS finding
+and attack campaign system.
+
+## GitHub Integration
+
+### Workflow: `.github/workflows/redos-security-scan.yml`
+
+```yaml
+name: RedOS Security Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main, develop, release/*]
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Run RedOS Security Scan
+        env:
+          REDOS_API_URL: ${{ secrets.REDOS_API_URL }}
+          REDOS_API_KEY: ${{ secrets.REDOS_API_KEY }}
+          REDOS_ORG_ID: ${{ secrets.REDOS_ORG_ID }}
+        run: |
+          # Run the security scan
+          npm run scan -- --api-url $REDOS_API_URL --api-key $REDOS_API_KEY --org-id $REDOS_ORG_ID
+
+      - name: Upload findings to RedOS
+        env:
+          REDOS_API_URL: ${{ secrets.REDOS_API_URL }}
+          REDOS_API_KEY: ${{ secrets.REDOS_API_KEY }}
+        run: |
+          # POST findings to RedOS API
+          curl -X POST "$REDOS_API_URL/api/v1/findings/batch" \
+            -H "Authorization: Bearer $REDOS_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d @findings.json
+
+      - name: Gate Evaluation
+        env:
+          REDOS_API_URL: ${{ secrets.REDOS_API_URL }}
+          REDOS_API_KEY: ${{ secrets.REDOS_API_KEY }}
+        run: |
+          # Evaluate security gates
+          curl -X POST "$REDOS_API_URL/api/v1/gates/evaluate" \
+            -H "Authorization: Bearer $REDOS_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d {
+              "campaign_id": "${{ github.event.pull_request.head.sha }}",
+              "organization_id": "${{ secrets.REDOS_ORG_ID }}"
+            }
+
+      - name: Comment PR with Results
+        uses: actions/github-script@v7
+        env:
+          REDOS_API_URL: ${{ secrets.REDOS_API_URL }}
+          REDOS_API_KEY: ${{ secrets.REDOS_API_KEY }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const results = await fetch("$REDOS_API_URL/api/v1/gates/config", {
+              headers: { Authorization: `Bearer $REDOS_API_KEY` }
+            }).then(r => r.json())
+
+            let comment = `## RedOS Security Scan Results\n\n`
+            
+            if (results.BLOCK_CRITICAL?.result === 'block') {
+              comment += `❌ **BLOCK**: Critical finding detected - campaign launch prevented\n`
+            } else {
+              comment += `✅ **PASS**: No critical findings\n`
+            }
+            
+            if (results.WARN_MEDIUM_INCREASE?.result === 'warn') {
+              comment += `⚠️ **WARN**: Medium risk threshold exceeded: ${results.WARN_MEDIUM_INCREASE.medium_count}/${results.WARN_MEDIUM_INCREASE.threshold}\n`
+            }
+            
+            comment += `\n_PGate evaluation completed_`
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            })
+```
+
+### GitHub Marketplace App
+
+RedOS GitHub App provides:
+
+- **Repository permissions**: Read contents, pull requests, discussions
+- **Webhook events**: `pull_request`, `push`, `workflow_run`
+- **Installation scope**: Organization-wide or repository-specific
+- **Setup flow**: OAuth app installation with redirect URI
+
+### Secrets Management
+
+| Secret | Source | Rotation |
+|--------|--------|----------|
+| `REDOS_API_KEY` | Organization vault | 90 days |
+| `REDOS_API_URL` | Deployment config | Never rotates |
+| `GITHUB_APP_TOKEN` | GitHub API | Session-based |
+| `SSL_CERTIFICATE` | Kubernetes secret | 365 days |
+
+## GitLab Integration
+
+### Pipeline Job: `.gitlab-ci.yml`
+
+```yaml
+redos_security_scan:
+  stage: security
+  image: node:20
+  services:
+    - name: redis:7
+      alias: redis
+  variables:
+    REDOS_API_URL: https://api.redos.io
+    REDOS_API_KEY: $REDOS_API_KEY
+  script:
+    - npm ci
+    - npm run scan -- --api-url $REDOS_API_URL --api-key $REDOS_API_KEY
+    - curl -X POST "$REDOS_API_URL/api/v1/findings/batch" -H "Authorization: Bearer $REDOS_API_KEY" -H "Content-Type: application/json" -d @findings.json
+    - curl -X POST "$REDOS_API_URL/api/v1/gates/evaluate" -H "Authorization: Bearer $REDOS_API_KEY" -H "Content-Type: application/json" -d '{"campaign_id": "$CI_COMMIT_SHA", "organization_id": "$REDOS_ORG_ID"}'
+  only:
+    - merge_requests
+    - main
+  artifacts:
+    paths:
+      - findings.json
+      - gate-decisions.json
+    expire_in: 1 day
+```
+
+### GitLab Security Dashboard
+
+Integration with GitLab Secure Analytics:
+
+- **Security Trends**: Chart of findings over time
+- **Vulnerability Report**: Export format compatible with GitLab
+- **Compliance**: Map findings to GitLab compliance frameworks
+
+## CI Pipeline Integrations
+
+### Generic CI/CD Support
+
+| CI System | Trigger | Artifact | Gate Evaluation |
+|-----------|---------|----------|-----------------|
+| **Jenkins** | `post-success` | `findings.json` | `curl` to `/api/v1/gates/evaluate` |
+| **CircleCI** | `workflow_complete` | `gate-decisions.json` | Orb integration |
+| **Travis CI** | `finish` | `report.json` | Environment variable gates |
+| **Bamboo** | `Completed` | `security-report.xml` | Task result action |
+| **Azure DevOps** | `PipelineCompletion` | `findings.json` | REST API integration |
+
+### Pipeline Stages
+
+```mermaid
+flowchart LR
+    A[Code Commit] --> B[Build Stage]
+    B --> C[Unit Tests]
+    C --> D[Security Scan]
+    D -->|FAIL| E[Block Merge]
+    D -->|PASS| F[Integration Tests]
+    F --> G[Deployment Stage]
+    G -->|Success| H[Post to RedOS]
+    G -->|Failure| E[Block Merge]
+    
+    style D fill:#ff6b6b, color:#fff
+    style G fill:#5f27cd, color:#fff
+```
+
+### Artifact Formats
+
+#### findings.json
+```json
+{
+  "findings": [
+    {
+      "title": "Critical Prompt Injection",
+      "severity": "CRITICAL",
+      "description": "Indirect prompt injection via retrieved context",
+      "source": "github-action",
+      "category": "injection",
+      "evidence": {
+        "model_output": "....",
+        "document_url": "...."
+      }
+    }
+  ],
+  "campaign_id": "optional_campaign_id",
+  "pull_request_number": 123
+}
+```
+
+#### gate-decisions.json
+```json
+{
+  "pull_request": 123,
+  "evaluated_at": "2024-01-15T10:30:00Z",
+  "results": {
+    "BLOCK_CRITICAL": {"result": "block", "triggered": true},
+    "BLOCK_HIGH_INTRO": {"result": "pass", "triggered": false},
+    "WARN_MEDIUM_INCREASE": {"result": "warn", "medium_count": 3, "threshold": 5},
+    "PASS_NO_REGRESSION": {"result": "pass", "triggered": false}
+  },
+  "final_decision": "block",
+  "decision_reason": "BLOCK_CRITICAL triggered"
+}
+```
+
+## Kubernetes Integration
+
+### Operator CRDs (Custom Resource Definitions)
+
+#### RedOSSecurityScan CRD
+```yaml
+apiVersion: redos.io/v1
+kind: RedOSSecurityScan
+metadata:
+  name: pr-scan
+spec:
+  pull_request_number: 123
+  organization_id: org_oid
+  auto_block_on_critical: true
+  auto_warn_on_medium_increase: true
+  medium_increase_threshold: 5
+  medium_increase_window_days: 30
+  gate_evaluation: true
+  upload_findings: true
+  alert_on_block: true
+```
+
+#### RedOS
+
+#### RedOSGateConfig CRD
+```yaml
+apiVersion: redos.io/v1
+kind: RedOSGateConfig
+metadata:
+  name: organization-gates
+spec:
+  organization_id: org_oid
+  gates:
+    BLOCK_CRITICAL:
+      enabled: true
+      severity: "CRITICAL"
+      action: "block"
+    BLOCK_HIGH_INTRO:
+      enabled: true
+      hours_window: 24
+      action: "block"
+    WARN_MEDIUM_INCREASE:
+      enabled: true
+      threshold: 5
+      window_days: 30
+      action: "warn"
+    PASS_NO_REGRESSION:
+      enabled: true
+    PASS_COMPLIANCE:
+      enabled: false
+```
+
+### Kubernetes Operator
+
+```go
+// Pseudocode - RedOS Gate Admission Controller
+package redos
+
+import (
+    "context"
+    corev1 "k8s.io/api/core/v1"
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    redos "redos.io/api/v1"
+)
+
+type GateDecision struct {
+    FinalDecision  string                    `json:"finalDecision"`
+    Results        map[string]GateResult    `json:"results"`
+    DecisionReason string                   `json:"decisionReason"`
+}
+
+type GateResult struct {
+    Result      string   `json:"result"`
+    Triggered   bool     `json:"triggered"`
+    Details     string   `json:"details"`
+}
+
+func (r *RedOSReconciler) evaluateGates(ctx context.Context, pr *corev1.PullRequest) *GateDecision {
+    // Pull gate config from RedOS API
+    gates := r.fetchGateConfig(pr.Annotations)
+    
+    // Evaluate each gate against findings
+    decisions := make(map[string]GateResult)
+    
+    // BLOCK_CRITICAL
+    if gates.BLOCK_CRITICAL.Enabled {
+        findings := r.findCriticalFindings(pr.Number)
+        decisions["BLOCK_CRITICAL"] = GateResult{
+            Result:      "block",
+            Triggered:   len(findings) > 0,
+            Details:     fmt.Sprintf("Critical findings: %d", len(findings)),
+        }
+    }
+    
+    // ... evaluate other gates
+    
+    // Determine final decision
+    finalDecision := "pass"
+    reason := ""
+    for _, d := range decisions {
+        if d.Result == "block" {
+            finalDecision = "block"
+            reason = d.Details
+            break
+        } else if d.Result == "warn" && finalDecision != "block" {
+            finalDecision = "warn"
+            reason = d.Details
+        }
+    }
+    
+    return &GateDecision{
+        FinalDecision:  finalDecision,
+        Results:        decisions,
+        DecisionReason: reason,
+    }
+}
+```
+
+### ArgoCD Integration
+
+```yaml
+# ArgoCD Application with gate evaluation
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redos-security-scan
+spec:
+  source:
+    repoURL: https://github.com/org/redos
+    targetRevision: HEAD
+    path: .
+  destination:
+    server: https://k8s.cluster.local
+    namespace: redos
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace
+  
+  # Sync hook runs gate evaluation
+  syncHook: |
+    #!/bin/bash
+    curl -X POST https://api.redos.io/api/v1/gates/evaluate \
+      -H "Authorization: Bearer $REDOS_API_TOKEN" \
+      -d '{"pull_request_number": "$ARGO_PR_NUMBER", "organization_id": "$ORG_ID"}'
+```
+
+## Docker Integration
+
+### Docker Build Hooks
+
+```dockerfile
+# Dockerfile with RedOS security scanning
+FROM node:20 AS builder
+
+# ... build steps ...
+
+# Security scan stage
+FROM node:20 AS security-scan
+
+# Install RedOS CLI
+RUN npm install -g @redos/cli
+
+# Run gates before final image
+RUN redos-gates:evaluate \
+  --api-url https://api.redos.io \
+  --api-key $REDOS_API_KEY \
+  --org-id $REDOS_ORG_ID \
+  --pr-number ${GITHUB_PR_NUMBER:-0}
+
+# If gates pass, continue to push
+# If gates fail, build stops
+```
+
+### Docker Scout Integration
+
+```bash
+# Docker Scout + RedOS integration
+docker scout cve-scan my-image:tag
+
+# Upload results to RedOS
+redos-cli upload --type scout --data scout-results.json
+
+# Gate evaluation based on scout results
+redos-cli gates:check --critical-threshold 0
+```
+
+### Multi-arch Build with Gate Checking
+
+```bash
+# GitHub Actions multi-arch build with gate checking
+- name: Build and test multi-arch image
+  uses: docker/build-push-action@v5
+  with:
+    platforms: linux/amd64,linux/arm64
+    tags: my-image:${{ github.sha }}
+    load: true
+    
+    # Gate evaluation after build
+    env:
+      REDOS_API_KEY: ${{ secrets.REDOS_API_KEY }}
+    run: |
+      redos-gates:evaluate \
+        --api-url https://api.redos.io \
+        --api-key $REDOS_API_KEY \
+        --org-id org_123
+```
+
+## Kubernetes Resource Quotas and Limits
+
+### Namespace Quotas
+
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: redos-quota
+  namespace: redos
+spec:
+  hard:
+    cpu: "50"
+    memory: "100Gi"
+    pods: "20"
+    persistentvolumeclaims: "10"
+    services: "100"
+```
+
+### LimitRanges
+
+```yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: redos-limits
+  namespace: redos
+spec:
+  limits:
+  - max:
+      cpu: "4"
+      memory: "8Gi"
+    min:
+      cpu: "100m"
+      memory: "128Mi"
+    default:
+      cpu: "1"
+      memory: "256Mi"
+    defaultRequest:
+      cpu: "500m"
+      memory: "128Mi"
+  - max:
+      pods: "5"
+    min:
+      pods: "1"
+    default:
+      pods: "2"
+    defaultRequest:
+      pods: "1"
+```
+
+### Priority Classes
+
+```yaml
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: redos-critical
+value: 1000000
+description: "Critical security scan pods"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: redos-normal
+value: 500000
+description: "Normal security scan pods"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: redos-best-effort
+value: 100000
+description "Best-effort scan jobs"
+```
+
+## Summary Table
+
+| Integration | Trigger | Artifact | Gate API | UI |
+|-------------|---------|----------|----------|-----|
+| **GitHub** | PR events | `findings.json` | `/api/v1/gates/evaluate` | PR comment |
+| **GitLab** | Merge requests | `gate-decisions.json` | `/api/v1/gates/evaluate` | Pipeline status |
+| **Jenkins** | Post-success | `findings.json` | `/api/v1/gates/evaluate` | Console output |
+| **CircleCI** | Workflow complete | `report.json` | Orb callback | Dashboard |
+| **Kubernetes** | Deployment CRD | `RedOSSecurityScan` | CRD spec | Operator UI |
+| **Docker** | Build completion | `scout-results.json` | CLI check | Build log |
+| **ArgoCD** | Sync hook | `gate-decisions.json` | REST API | ArgoCD sync status |
+
+## Security Gate Policies as Code
+
+Organizations can version-control gate configurations:
+
+```bash
+# Export gate config
+redos-cli gates export --org org_oid --file gates.json
+
+# Git commit
+git add gates.json
+git commit -m "Update critical finding threshold to 0"
+git push
+
+# Import to staging org
+redos-cli gates import --org staging_oid --file gates.json
+
+# Diff between versions
+redos-cli gates diff --org prod_oid --version v1.2.1 --version v1.2.0
+```
+
+This enables:
+- Gate configuration as code
+- Review and approval workflows via Git
+- Change tracking and full audit trail
+- Multi-environment consistency (dev/staging/prod)
+- Rollback to previous gate configurations

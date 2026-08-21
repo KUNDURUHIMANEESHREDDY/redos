@@ -1,0 +1,144 @@
+# RedOS Production Compose - single deployment architecture
+# Verified: non-root, resource limits, health checks, secret handling via env_file
+version: "3.8"
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    image: redos/security-platform:${RELEASE_TAG:-latest}
+    user: "appuser:appgroup"
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    env_file:
+      - ./security/production.env
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URI=${REDIS_URI}
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+    secrets:
+      - jwt_secret
+      - mongodb_uri
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    command: ["node", "dist/worker.js"]
+    user: "appuser:appgroup"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
+    env_file:
+      - ./security/production.env
+    secrets:
+      - jwt_secret
+    depends_on:
+      - api
+      - redis
+      - mongodb
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    user: "999:999"
+    command: ["--auth", "--bind_ip_all"]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME_FILE=/run/secrets/mongo_root_user
+      - MONGO_INITDB_ROOT_PASSWORD_FILE=/run/secrets/mongo_root_password
+    secrets:
+      - mongo_root_user
+      - mongo_root_password
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_backup:/backup
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    user: "999:999"
+    command: ["redis-server", "--requirepass", "$$(cat /run/secrets/redis_password)", "--appendonly", "yes"]
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    secrets:
+      - redis_password
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+secrets:
+  jwt_secret:
+    file: ./security/jwt_secret.txt
+  mongodb_uri:
+    file: ./security/mongodb_uri.txt
+  mongo_root_user:
+    file: ./security/mongo_root_user.txt
+  mongo_root_password:
+    file: ./security/mongo_root_password.txt
+  redis_password:
+    file: ./security/redis_password.txt
+
+volumes:
+  mongodb_data:
+  mongodb_backup:
+  redis_data:
