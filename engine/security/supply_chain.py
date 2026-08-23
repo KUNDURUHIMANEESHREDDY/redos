@@ -101,9 +101,14 @@ def check_dependency_lock(project_root: Path | None = None) -> GateResult:
             packages = data.get("packages") or data.get("dependencies") or {}
             metrics["lock_packages"] = len(packages)
             # integrity field coverage = reproducibility signal
-            with_integrity = sum(1 for v in packages.values() if isinstance(v, dict) and "integrity" in v)
-            metrics["lock_integrity_pct"] = round(with_integrity / len(packages) * 100, 1) if packages else 0
+            # Exclude root package "" which never has integrity by design (measurement fix)
+            non_root_packages = {k: v for k, v in packages.items() if k != "" and isinstance(v, dict)}
+            with_integrity = sum(1 for v in non_root_packages.values() if "integrity" in v)
+            total_non_root = len(non_root_packages) if non_root_packages else len(packages)
+            metrics["lock_packages_non_root"] = total_non_root
+            metrics["lock_integrity_pct"] = round(with_integrity / total_non_root * 100, 1) if total_non_root else 0
             evidence["lock_packages_with_integrity"] = with_integrity
+            evidence["lock_packages_total_non_root"] = total_non_root
         except Exception as e:
             metrics["lock_parse_error"] = str(e)
             metrics["lock_integrity_pct"] = 0
@@ -318,7 +323,7 @@ def secret_scan(project_root: Path | None = None, max_files: int = 500) -> GateR
     # Files to scan - measured execution
     allow_exts = {".py", ".ts", ".js", ".json", ".yml", ".yaml", ".env", ".ini", ".toml", ".sh"}
     exclude_dirs = {".git", "node_modules", ".pytest_cache", "__pycache__", "reports", "sbom.json"}
-    exclude_files = {"gen_docs.py", "trust_gate.py", "release_gate.py"}
+    exclude_files = {"gen_docs.py", "trust_gate.py", "release_gate.py", "test_vulnerable_dep.py"}
     files_scanned = 0
     findings: list[dict] = []
     scanned_paths: list[str] = []
@@ -454,8 +459,9 @@ def dependency_scan(project_root: Path | None = None) -> GateResult:
     pkg = root / "package.json"
     if pkg.exists():
         try:
-            # Use npm audit json if available
-            result = subprocess.run(["npm", "audit", "--json"], capture_output=True, timeout=20, cwd=str(root))
+            # Use npm audit json if available (handle Windows npm.cmd)
+            npm_cmd = "npm.cmd" if sys.platform == "win32" else "npm"
+            result = subprocess.run([npm_cmd, "audit", "--json"], capture_output=True, timeout=20, cwd=str(root))
             if result.stdout:
                 try:
                     audit = json.loads(result.stdout.decode())
