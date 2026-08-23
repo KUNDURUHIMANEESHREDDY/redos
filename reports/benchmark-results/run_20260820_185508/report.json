@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "timestamp": "2026-08-20T18:55:08.340758",
+    "total_targets": 10,
+    "total_attacks": 19,
+    "total_successful": 19
+  },
+  "aggregate_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "fpr": 0,
+    "fnr": 0.0,
+    "f1": 1.0,
+    "tp": 19,
+    "fp": 0,
+    "fn": 0,
+    "tn": 0
+  },
+  "per_target": {
+    "benchmark-agent-escalation-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-data-leakage-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-permissions-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 1.0
+    },
+    "benchmark-jailbreak-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-malicious-document-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-model-manipulation-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-prompt-injection-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-rag-poisoning-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 1.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-tool-abuse-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    },
+    "benchmark-unsafe-tool-calls-v1": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "fnr": 0.0,
+      "attack_coverage": 1.0,
+      "tool_coverage": 0.0,
+      "rag_coverage": 0.0,
+      "permission_coverage": 0.0
+    }
+  },
+  "comparison": {
+    "adaptive_better_count": 0,
+    "total_targets_compared": 10,
+    "adaptive_better_percentage": 0.0
+  }
+}

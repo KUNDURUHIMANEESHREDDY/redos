@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "tenant_isolation": true,
+    "authentication": true,
+    "authorization": true,
+    "evidence_readable": true,
+    "findings_accessible": true,
+    "execution_state": true,
+    "regression_history": true,
+    "api_works": true
+  },
+  "rollback_success": true,
+  "generated_at": "2026-08-21T19:33:54.617606+00:00"
+}

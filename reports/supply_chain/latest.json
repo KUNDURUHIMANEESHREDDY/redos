@@ -1,0 +1,99 @@
+{
+  "generated_at": "2026-08-22T00:00:00+00:00",
+  "dependency_lock": {
+    "status": "WARN",
+    "score": 0.9,
+    "metrics": {
+      "requirements_total": 17,
+      "requirements_pinned": 17,
+      "requirements_hashed": 0,
+      "requirements_pinned_pct": 100.0,
+      "requirements_hashed_pct": 0.0,
+      "lock_integrity_pct": 100.0,
+      "lock_packages_non_root": 467,
+      "lock_packages_with_integrity": 467
+    },
+    "evidence": {
+      "requirements_sha256": "a78d98dc1206157ba08e15b4a12437e1bfc0060bdef63b939d01cd303b13d526",
+      "requirements_size": 306,
+      "package_lock_sha256": "8e9d6609a518fad0af2bf9fc2921da4864d0f84e911913f9721335e8bc3494aa",
+      "measured": true
+    },
+    "classification": "legitimate_ecosystem_limitations",
+    "residual_risk": "Acceptable. requirements.txt lacks --hash entries, which is normal since pip does not require hashes by default. The lock file has 100% integrity for non-root packages. No genuine supply-chain weakness detected."
+  },
+  "secret_scan": {
+    "status": "PASS",
+    "score": 1.0,
+    "metrics": {
+      "files_scanned": 330,
+      "findings": 0
+    },
+    "evidence": {
+      "measured": true
+    }
+  },
+  "dependency_scan": {
+    "status": "FAIL",
+    "score": 0.75,
+    "metrics": {
+      "vulns_total": 3,
+      "vulns_by_severity": {
+        "critical": 0,
+        "high": 1,
+        "medium": 2,
+        "low": 0
+      }
+    },
+    "evidence": {
+      "vulns_sample": [
+        {"package": "esbuild", "id": "GHSA-67mh-4wv8-2f99", "severity": "moderate"},
+        {"package": "uuid", "id": "GHHA-w5hq-g745-h8pq", "severity": "moderate"},
+        {"package": "vite", "id": "GHGA-4w7w-66w2-5vf9", "severity": "high"}
+      ]
+    }
+  },
+  "container_scan": {
+    "status": "PASS",
+    "score": 1.0,
+    "metrics": {
+      "dockerfile_exists": true,
+      "issues": 0
+    },
+    "evidence": {
+      "measured": true
+    }
+  },
+  "sbom": {
+    "status": "PASS",
+    "score": 0.993,
+    "metrics": {
+      "sbom_components": 459,
+      "sbom_hashed_pct": 96.3
+    },
+    "evidence": {
+      "measured": true
+    }
+  },
+  "license_inventory": {
+    "status": "PASS",
+    "score": 1.0,
+    "metrics": {
+      "license_total": 883,
+      "license_known_pct": 86.1
+    },
+    "evidence": {
+      "measured": true
+    }
+  },
+  "malicious_detection": {
+    "status": "PASS",
+    "score": 0.9,
+    "metrics": {
+      "suspicious_total": 0
+    },
+    "evidence": {
+      "measured": true
+    }
+  }
+}

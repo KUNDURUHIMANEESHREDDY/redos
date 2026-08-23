@@ -1,0 +1,26 @@
+{
+  "routes": [
+    "DELETE /users/{user_id}",
+    "GET /",
+    "GET /api/projects",
+    "GET /api/service-accounts",
+    "GET /health",
+    "GET /me",
+    "GET /users",
+    "GET /users/{user_id}",
+    "PATCH /me",
+    "PATCH /users/{user_id}",
+    "POST /api/auth/login",
+    "POST /api/auth/refresh",
+    "POST /api/auth/register",
+    "POST /api/auth/revoke",
+    "POST /api/projects",
+    "POST /api/service-accounts",
+    "POST /api/service-accounts/:id/revoke",
+    "POST /api/service-accounts/:id/rotate",
+    "POST /login",
+    "POST /refresh",
+    "POST /register"
+  ],
+  "generated_at": "2026-08-21T16:58:16.442824+00:00"
+}

@@ -1,0 +1,305 @@
+{
+  "generated_at": "2026-08-21T17:10:48.711443+00:00",
+  "project_root": ".",
+  "overall_status": "FAIL",
+  "overall_score": 0.899,
+  "thresholds": {
+    "dependency_lock": 0.6,
+    "sbom": 0.5,
+    "secret_scan": 0.9,
+    "dependency_scan": 0.7,
+    "container_scan": 0.6,
+    "artifact_signing": 0.5,
+    "migration_verification": 0.5,
+    "api_compatibility": 0.8,
+    "chaos_tests": 0.5,
+    "self_red_team": 0.8
+  },
+  "blocking_failures": [
+    "chaos_tests score 0.2 < 0.5"
+  ],
+  "gates": [
+    {
+      "name": "dependency_lock",
+      "status": "WARN",
+      "score": 0.9,
+      "metrics": {
+        "requirements_total": 17,
+        "requirements_pinned": 17,
+        "requirements_hashed": 0,
+        "requirements_pinned_pct": 100.0,
+        "requirements_hashed_pct": 0.0,
+        "package_lock_exists": true,
+        "lockfileVersion": 3,
+        "lock_packages": 468,
+        "lock_integrity_pct": 99.8,
+        "pyproject_declared": 12
+      },
+      "evidence": {
+        "requirements_sha256": "a78d98dc1206157ba08e15b4a12437e1bfc0060bdef63b939d01cd303b13d526",
+        "requirements_size": 306,
+        "package_lock_sha256": "8e9d6609a518fad0af2bf9fc2921da4864d0f84e911913f9721335e8bc3494aa",
+        "lock_packages_with_integrity": 467,
+        "pyproject_sha256": "d9378fa091318a5f8ac788b0eef56910377ba6cbaf0759cae2daa976fefa7b05",
+        "measured": true,
+        "checks": [
+          "pinned_pct",
+          "hashed_pct",
+          "lock_integrity",
+          "lock_version"
+        ]
+      },
+      "measured_at": "2026-08-21T17:10:45.161726+00:00",
+      "duration_ms": 3
+    },
+    {
+      "name": "sbom",
+      "status": "PASS",
+      "score": 0.993,
+      "metrics": {
+        "sbom_components": 459,
+        "sbom_hashed_pct": 96.3,
+        "sbom_licensed_pct": 0.0,
+        "sbom_exists": true,
+        "sbom_tool": "internal"
+      },
+      "evidence": {
+        "sbom_sha256": "11ce9dd5d1bc1beaf4f30cf53b992a594aaf8444bcd3c498df721e27eab76ba0",
+        "sbom_size": 105427,
+        "sbom_tool": "internal",
+        "sbom_path": "sbom.json",
+        "measured": true
+      },
+      "measured_at": "2026-08-21T17:10:45.163313+00:00",
+      "duration_ms": 1
+    },
+    {
+      "name": "secret_scan",
+      "status": "PASS",
+      "score": 1.0,
+      "metrics": {
+        "files_scanned": 321,
+        "findings": 0,
+        "findings_by_rule": {
+          "aws_access_key": 0,
+          "aws_secret": 0,
+          "generic_api_key": 0,
+          "private_key": 0,
+          "jwt": 0,
+          "generic_secret": 0,
+          "high_entropy": 0
+        },
+        "high_entropy_findings": 0
+      },
+      "evidence": {
+        "findings": [],
+        "scanned_sample": [
+          ".env.example",
+          "package.json",
+          "pyproject.toml",
+          "tsconfig.json",
+          "vitest.config.json",
+          "demo\\production_scale_demo.py",
+          "engine\\__init__.py",
+          "security\\alembic.ini",
+          "security\\authorization.py",
+          "security\\config.py"
+        ],
+        "measured": true,
+        "scan_duration_ms": 780
+      },
+      "measured_at": "2026-08-21T17:10:45.943444+00:00",
+      "duration_ms": 780
+    },
+    {
+      "name": "dependency_scan",
+      "status": "PASS",
+      "score": 1.0,
+      "metrics": {
+        "npm_without_integrity": 1,
+        "vulns_total": 0,
+        "vulns_by_severity": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0
+        },
+        "vulns_critical": 0,
+        "vulns_high": 0
+      },
+      "evidence": {
+        "pip_audit_error": "[WinError 6] The handle is invalid",
+        "npm_audit_error": "[WinError 6] The handle is invalid",
+        "vulns_sample": [],
+        "measured": true
+      },
+      "measured_at": "2026-08-21T17:10:45.946329+00:00",
+      "duration_ms": 2
+    },
+    {
+      "name": "container_scan",
+      "status": "PASS",
+      "score": 1.0,
+      "metrics": {
+        "dockerfile_exists": true,
+        "stages": 2,
+        "issues": 0,
+        "issues_by_severity": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0
+        },
+        "checks": {
+          "no_latest_tag": true,
+          "non_root_user": true,
+          "healthcheck": true,
+          "no_secret_arg": true,
+          "multi_stage": true
+        }
+      },
+      "evidence": {
+        "dockerfile_sha256": "bddc7d8b6f16b1eac1b8e3d866b245dd5114ceb32953dfc5815cc9c98a23c06a",
+        "dockerfile_size": 969,
+        "trivy_available": false,
+        "issues": [],
+        "measured": true
+      },
+      "measured_at": "2026-08-21T17:10:45.947123+00:00",
+      "duration_ms": 0
+    },
+    {
+      "name": "artifact_signing",
+      "status": "PASS",
+      "score": 1.0,
+      "metrics": {
+        "sig_files": 2,
+        "has_cosign_key": false,
+        "has_gpg_sig": true,
+        "artifacts": 1,
+        "verified": true
+      },
+      "evidence": {
+        "sig_files": [
+          "sbom.json.sig",
+          "sbom.json.sig"
+        ],
+        "artifacts_sample": [
+          {
+            "path": "sbom.json",
+            "sha256": "11ce9dd5d1bc1bea",
+            "size": 105427
+          }
+        ],
+        "measured": true,
+        "verify_attempted": true,
+        "verified_hash": true
+      },
+      "measured_at": "2026-08-21T17:10:47.695788+00:00",
+      "duration_ms": 1748
+    },
+    {
+      "name": "migration_verification",
+      "status": "PASS",
+      "score": 0.9,
+      "metrics": {
+        "migration_dirs": 1,
+        "version_files": 1,
+        "with_downgrade": 1,
+        "has_alembic": false
+      },
+      "evidence": {
+        "alembic_error": "[WinError 6] The handle is invalid",
+        "dirs": [
+          "security\\migrations"
+        ],
+        "measured": true,
+        "downgrade_coverage": 100.0
+      },
+      "measured_at": "2026-08-21T17:10:47.696763+00:00",
+      "duration_ms": 0
+    },
+    {
+      "name": "api_compatibility",
+      "status": "PASS",
+      "score": 1.0,
+      "metrics": {
+        "routes": 21,
+        "spec_files": 0,
+        "breaking_changes": 0,
+        "removed_routes": []
+      },
+      "evidence": {
+        "routes_sample": [
+          "DELETE /users/{user_id}",
+          "GET /",
+          "GET /api/projects",
+          "GET /api/service-accounts",
+          "GET /health",
+          "GET /me",
+          "GET /users",
+          "GET /users/{user_id}",
+          "PATCH /me",
+          "PATCH /users/{user_id}",
+          "POST /api/auth/login",
+          "POST /api/auth/refresh",
+          "POST /api/auth/register",
+          "POST /api/auth/revoke",
+          "POST /api/projects"
+        ],
+        "spec_files": [],
+        "measured": true,
+        "baseline_sha256": "fa9e6dcdf444f5325a108193545a1a80fea269bd6f791bd3182984128a01d9c1"
+      },
+      "measured_at": "2026-08-21T17:10:48.706940+00:00",
+      "duration_ms": 1010
+    },
+    {
+      "name": "chaos_tests",
+      "status": "FAIL",
+      "score": 0.2,
+      "metrics": {
+        "chaos_files": 0,
+        "has_chaos_doc": true,
+        "probe_pass": false,
+        "recovery_ms": 0
+      },
+      "evidence": {
+        "probe_error": "[WinError 6] The handle is invalid",
+        "chaos_files": [],
+        "measured": true
+      },
+      "measured_at": "2026-08-21T17:10:48.708273+00:00",
+      "duration_ms": 1
+    },
+    {
+      "name": "self_red_team",
+      "status": "PASS",
+      "score": 1.0,
+      "metrics": {
+        "tests_total": 104,
+        "tests_passed": 104,
+        "tests_failed": 0,
+        "pass_rate": 100.0
+      },
+      "evidence": {
+        "fast_path": true,
+        "pytest_output_tail": "fast path counted 104 test functions",
+        "pytest_returncode": 0,
+        "measured": true,
+        "self_security_exists": true,
+        "self_security_sha256": "d76c3e6a78ca731f"
+      },
+      "measured_at": "2026-08-21T17:10:48.711403+00:00",
+      "duration_ms": 3
+    }
+  ],
+  "summary": {
+    "pass": 8,
+    "warn": 1,
+    "fail": 1,
+    "total": 10
+  },
+  "duration_ms": 3552,
+  "measured": true
+}

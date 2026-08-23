@@ -1,0 +1,51 @@
+{
+  "ExecutionResult": {
+    "fields": [
+      "execution",
+      "plan",
+      "outcome",
+      "outcome_reason",
+      "validation",
+      "replay_hash",
+      "observation"
+    ],
+    "enums": {
+      "outcome": [
+        "success",
+        "failure",
+        "indeterminate"
+      ]
+    }
+  },
+  "EvidenceEvent": {
+    "fields": [
+      "event_id",
+      "execution_id",
+      "type",
+      "timestamp",
+      "data"
+    ],
+    "enums": {}
+  },
+  "Finding": {
+    "fields": [
+      "finding_id",
+      "execution_id",
+      "target_id",
+      "attack_id",
+      "outcome",
+      "outcome_reason",
+      "validation_valid",
+      "stored_at",
+      "severity"
+    ]
+  },
+  "Target": {
+    "fields": [
+      "target_id",
+      "kind",
+      "base_url",
+      "model"
+    ]
+  }
+}

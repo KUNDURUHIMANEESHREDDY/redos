@@ -1,0 +1,11 @@
+{
+  "engine/tests/campaigns/test_adaptive_selection.py::test_strategy_does_not_repeat_failed_family_without_new_capability": true,
+  "engine/tests/campaigns/test_adaptive_selection.py::test_strategy_falls_back_to_untried_plugins": true,
+  "engine/tests/campaigns/test_adaptive_selection.py::test_dependency_graph_requires_tool_capability": true,
+  "engine/tests/campaigns/test_adaptive_selection.py::test_candidate_defaults_depends_on_zero": true,
+  "engine/tests/campaigns/test_fuzzing.py::test_fuzzer_deterministic_recipe_order": true,
+  "security/tests/digital_twin/test_models.py": true,
+  "security/tests/knowledge/test_models.py": true,
+  "engine/tests/security/test_ssrf.py::test_ssrf_allows[http://127.0.0.1:8080/]": true,
+  "engine/tests/security/test_ssrf.py::test_ssrf_allows[http://[::1]:9000/]": true
+}

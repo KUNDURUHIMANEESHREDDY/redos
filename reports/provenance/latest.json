@@ -1,0 +1,32 @@
+{
+  "git_commit": "12269f61cfd07dcce5d3df58bc1ca1ab1adea242",
+  "git_dirty": true,
+  "build_inputs": [
+    {
+      "path": "deployment\\Dockerfile",
+      "sha256": "bddc7d8b6f16b1ea"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "8e9d6609a518fad0"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "a78d98dc1206157b"
+    }
+  ],
+  "sbom_sha256": "11ce9dd5d1bc1beaf4f30cf53b992a594aaf8444bcd3c498df721e27eab76ba0",
+  "sbom_components": 459,
+  "signature_verified": true,
+  "generated_at": "2026-08-21T19:33:43.650821+00:00",
+  "chain": [
+    "Git commit",
+    "Build",
+    "Test",
+    "SBOM",
+    "Security scan",
+    "Artifact",
+    "Signature/provenance",
+    "Deploy"
+  ]
+}

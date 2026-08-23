@@ -1,0 +1,16 @@
+{
+  "collections": [
+    "organizations",
+    "projects",
+    "targets",
+    "attack_campaigns",
+    "executions",
+    "findings",
+    "evidence",
+    "regression_history",
+    "audit_logs"
+  ],
+  "issues": [],
+  "restore_issues": [],
+  "generated_at": "2026-08-21T19:33:43.655313+00:00"
+}

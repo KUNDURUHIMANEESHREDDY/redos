@@ -1,0 +1,131 @@
+{
+  "ExecutionResult": {
+    "required": [
+      "execution",
+      "plan",
+      "outcome",
+      "outcome_reason",
+      "validation",
+      "replay_hash"
+    ],
+    "enums": {
+      "outcome": [
+        "success",
+        "failure",
+        "indeterminate"
+      ]
+    },
+    "provenance_fields": [
+      "execution"
+    ]
+  },
+  "EvidenceEvent": {
+    "required": [
+      "event_id",
+      "execution_id",
+      "type",
+      "timestamp",
+      "data"
+    ],
+    "enums": {
+      "type": [
+        "execution_started",
+        "execution_finished",
+        "model_request",
+        "model_response",
+        "tool_call",
+        "artifact"
+      ]
+    },
+    "provenance_fields": [
+      "data.provenance"
+    ]
+  },
+  "Finding": {
+    "required": [
+      "finding_id",
+      "execution_id",
+      "target_id",
+      "attack_id",
+      "outcome",
+      "outcome_reason",
+      "validation_valid"
+    ],
+    "enums": {},
+    "provenance_fields": []
+  },
+  "SeverityAssessment": {
+    "required": [
+      "severity",
+      "score",
+      "reason"
+    ],
+    "enums": {
+      "severity": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ]
+    },
+    "provenance_fields": []
+  },
+  "AttackGraph": {
+    "required": [
+      "nodes",
+      "edges"
+    ],
+    "enums": {},
+    "provenance_fields": []
+  },
+  "RegressionTest": {
+    "required": [
+      "regression_id",
+      "baseline",
+      "current",
+      "status"
+    ],
+    "enums": {
+      "status": [
+        "pass",
+        "fail",
+        "flaky"
+      ]
+    },
+    "provenance_fields": []
+  },
+  "Target": {
+    "required": [
+      "target_id",
+      "kind",
+      "base_url"
+    ],
+    "enums": {
+      "kind": [
+        "openai_compatible",
+        "anthropic_compatible",
+        "custom_http",
+        "agent",
+        "rag"
+      ]
+    },
+    "provenance_fields": []
+  },
+  "Campaign": {
+    "required": [
+      "campaign_id",
+      "name",
+      "strategy",
+      "status"
+    ],
+    "enums": {
+      "status": [
+        "planning",
+        "running",
+        "completed",
+        "failed"
+      ]
+    },
+    "provenance_fields": []
+  }
+}
